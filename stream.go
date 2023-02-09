@@ -17,6 +17,7 @@ import (
 	"github.com/pion/webrtc/v3"
 	"go.viam.com/utils"
 
+	"go.opencensus.io/trace"
 	"github.com/edaniels/gostream/codec"
 )
 
@@ -250,6 +251,8 @@ func (bs *basicStream) processInputFrames() {
 		}
 		var initErr bool
 		func() {
+			ctx, span := trace.startspan(bs.shutdownctx, "basicstream::processinputframes")
+			defer span.end()
 			if framePair.Release != nil {
 				defer framePair.Release()
 			}
@@ -268,7 +271,7 @@ func (bs *basicStream) processInputFrames() {
 			}
 
 			// thread-safe because the size is static
-			encodedFrame, err := bs.videoEncoder.Encode(bs.shutdownCtx, framePair.Media)
+			encodedFrame, err := bs.videoEncoder.Encode(ctx, framePair.Media)
 			if err != nil {
 				bs.logger.Error(err)
 				return
@@ -352,6 +355,7 @@ func (bs *basicStream) processOutputFrames() {
 			return
 		default:
 		}
+		_, span := trace.StartSpan(bs.shutdownCtx, "basicStream::processOutputFrames")
 		now := time.Now()
 		if err := bs.videoTrackLocal.WriteData(outputFrame); err != nil {
 			bs.logger.Errorw("error writing frame", "error", err)
@@ -360,6 +364,7 @@ func (bs *basicStream) processOutputFrames() {
 		if Debug {
 			bs.logger.Debugw("wrote sample", "frames_sent", framesSent, "write_time", time.Since(now))
 		}
+		span.End()
 	}
 }
 
