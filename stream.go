@@ -251,8 +251,8 @@ func (bs *basicStream) processInputFrames() {
 		}
 		var initErr bool
 		func() {
-			ctx, span := trace.startspan(bs.shutdownctx, "basicstream::processinputframes")
-			defer span.end()
+			ctx, span := trace.StartSpan(bs.shutdownCtx, "basicStream::processInputFrames")
+			defer span.End()
 			if framePair.Release != nil {
 				defer framePair.Release()
 			}

@@ -58,7 +58,7 @@ func (v *encoder) Read() (img image.Image, release func(), err error) {
 
 // Encode asks the codec to process the given image.
 func (v *encoder) Encode(ctx context.Context, img image.Image) ([]byte, error) {
-	ctx, span := trace.StartSpan(bs.shutdownCtx, "encoder::Encode::x264")
+	_, span := trace.StartSpan(ctx, "encoder::Encode::x264")
 	defer span.End()
 	v.img = img
 	data, release, err := v.codec.Read()
